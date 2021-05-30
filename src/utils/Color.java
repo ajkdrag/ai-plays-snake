@@ -9,4 +9,9 @@ public class Color {
         this.b = b;
         this.a = a;
     }
+
+    @Override
+    public String toString() {
+        return this.r + " " + this.g + " " + this.b + " " + this.a;
+    }
 }

@@ -11,6 +11,7 @@ public class Food extends DrawableGameComponent {
         this.side = side;
     }
 
+    @Override
     public void render() {
         this.sketch.noFill();
         this.sketch.stroke(this.color.r, this.color.g, this.color.b, this.color.a);

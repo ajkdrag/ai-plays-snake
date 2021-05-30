@@ -22,6 +22,10 @@ public abstract class DrawableGameComponent extends GameComponent implements Dra
         this.color.a = a;
     }
 
+    public Color getColor() {
+        return this.color;
+    }
+
     public void render() {
     }
 }
