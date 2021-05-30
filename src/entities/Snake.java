@@ -12,18 +12,20 @@ import src.utils.Position;
 public class Snake extends DrawableGameComponent implements EventListener {
     int length;
     int direction = 3;
-    int steps = 1;
     int[] dirX = { 0, 0, -1, 1 };
     int[] dirY = { -1, 1, 0, 0 };
     int bodyPartSize;
-    ArrayDeque<BodyPart> body;
     boolean isEventInQueue = false;
+    public boolean hasEatenFood = false;
+    public ArrayDeque<BodyPart> body;
+    public Position prevTailPosition;
 
     public Snake(PApplet sketch, int length, int bodyPartSize) {
         super(sketch);
         this.length = length;
         this.bodyPartSize = bodyPartSize;
         this.body = new ArrayDeque<>(length);
+        this.prevTailPosition = new Position(0, 0);
     }
 
     public void createBody() {
@@ -45,28 +47,55 @@ public class Snake extends DrawableGameComponent implements EventListener {
         }
     }
 
+    private void updatePrevTailPosition(Position tailPosition) {
+        this.prevTailPosition.x = tailPosition.x;
+        this.prevTailPosition.y = tailPosition.y;
+    }
+
     public void setHeadPosition(int x, int y) {
         this.position.x = x;
         this.position.y = y;
         this.body.peekLast().setPosition(x, y);
     }
 
+    public void setHeadPosition(Position position) {
+        setHeadPosition(position.x, position.y);
+    }
+
+    public Position getNextPosition() {
+        return new Position(this.position.x + dirX[direction] * this.bodyPartSize,
+                this.position.y + dirY[direction] * this.bodyPartSize);
+    }
+
+    public void eatFood() {
+        this.hasEatenFood = true;
+        this.length++;
+    }
+
     @Override
     public void setColor(int r, int g, int b, int a) {
+        this.color.r = r;
+        this.color.g = g;
+        this.color.b = b;
+        this.color.a = a;
         for (BodyPart bodyPart : this.body) {
-            bodyPart.setColor(r, g, b, a);
+            bodyPart.setColor(this.color);
         }
     }
 
     @Override
     public void update() {
         if (direction >= 0 && direction < 4) {
-            for (int i = 0; i < steps; ++i) {
-                BodyPart tail = body.pollFirst();
-                body.offerLast(tail);
-                setHeadPosition(this.position.x + dirX[direction] * this.bodyPartSize,
-                        this.position.y + dirY[direction] * this.bodyPartSize);
+            Position tailPosition = this.body.peekFirst().getPosition();
+            BodyPart newPart = new BodyPart(this.sketch, this.bodyPartSize);
+            newPart.setColor(this.color);
+            this.body.offerLast(newPart);
+            if (!this.hasEatenFood) {
+                this.body.pollFirst();
+                updatePrevTailPosition(tailPosition);
             }
+            setHeadPosition(getNextPosition());
+            this.hasEatenFood = false;
         }
         this.isEventInQueue = false;
     }
