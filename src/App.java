@@ -5,25 +5,22 @@ import src.controller.GameController;
 
 class App extends PApplet {
     static int W = 640;
-    static int H = 360;
+    static int H = 320;
     GameController gameController;
 
     public static void main(String[] args) {
-        String[] processingArgs = { "AI-Plays-SpaceInvaders" };
+        String[] processingArgs = { "AI-Plays-Snake" };
         App app = new App();
-        app.setupGameController();
         PApplet.runSketch(processingArgs, app);
     }
 
-    private void setupGameController() {
+    public void setup() {
         this.gameController = new GameController(this);
-        this.gameController.createGameBoard();
-        this.gameController.createComponentsForGameBoard();
-        this.gameController.addComponentsToGameBoard();
+        this.gameController.resetGame();
     }
 
     public void settings() {
-        size(W, H);
+        setSize(W, H);
     }
 
     public void draw() {
