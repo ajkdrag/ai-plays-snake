@@ -1,9 +1,13 @@
 package src.evt;
 
 public class Event {
-    public State state;
+    private State state;
 
-    public void setState(State state){
+    public void setState(State state) {
         this.state = state;
+    }
+
+    public State getState() {
+        return this.state;
     }
 }
