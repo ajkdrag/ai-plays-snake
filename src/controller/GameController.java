@@ -1,6 +1,7 @@
 package src.controller;
 
 import processing.core.PApplet;
+import java.util.Random;
 import src.comp.DrawableGameComponent;
 import src.entities.Food;
 import src.entities.Snake;
@@ -10,7 +11,9 @@ import src.entities.GameBoard;
 import src.utils.Position;
 
 public class GameController {
+    private boolean isGameRunning;
     private PApplet sketch;
+    private Random random;
 
     private GameBoard gameBoard;
     private Food food;
@@ -23,7 +26,7 @@ public class GameController {
 
     // lower = faster
     private static final int SPEED = 10;
-    private static final int TILE_SIZE = 40;
+    private static final int TILE_SIZE = 10;
 
     private static final int SNAKE_LENGTH = 4;
     private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
@@ -33,6 +36,8 @@ public class GameController {
     public GameController(PApplet sketch) {
         this.sketch = sketch;
         this.eventHandler = new EventHandler();
+        this.isGameRunning = true;
+        this.random = new Random();
     }
 
     public void resetGame() {
@@ -78,6 +83,8 @@ public class GameController {
     }
 
     private void vacateTile(int x) {
+        if (vacantMap[x] != -1)
+            return;
         vacantList[numVacantTiles] = x;
         vacantMap[x] = numVacantTiles;
         ++numVacantTiles;
@@ -94,10 +101,17 @@ public class GameController {
         }
         int lastVacantTile = vacantList[numVacantTiles - 1];
         vacantList[positionInVacantList] = lastVacantTile;
-        vacantMap[lastVacantTile] = positionInVacantList;
         vacantList[numVacantTiles - 1] = x;
+        vacantMap[lastVacantTile] = positionInVacantList;
         vacantMap[x] = -1;
         --numVacantTiles;
+    }
+
+    private Position getRandomVacantPosition() {
+        int tile = vacantList[random.nextInt(this.numVacantTiles)];
+        int relX = tile % this.gameBoard.nCols;
+        int relY = tile / this.gameBoard.nCols;
+        return new Position(relX * TILE_SIZE, relY * TILE_SIZE);
     }
 
     public void createComponentsForGameBoard() {
@@ -121,26 +135,35 @@ public class GameController {
         this.food.setColor(220, 0, 0, 220);
     }
 
-    private Position getNewFoodPosition() {
-        return Position.getRandomPosition(this.gameBoard.nCols / 4, this.gameBoard.nRows / 4).scale(TILE_SIZE,
-                TILE_SIZE);
-    }
-
     private void createSnake() {
         this.snake = new Snake(this.sketch, SNAKE_LENGTH, SNAKE_BODY_PART_SIZE);
         this.snake.createBody();
-        this.snake.setPosition(
-                new Position(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2).scale(TILE_SIZE, TILE_SIZE));
+        this.snake.setPosition(Position.getRandomPosition(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2)
+                .scale(TILE_SIZE, TILE_SIZE));
         this.snake.setColor(0, 0, 220, 220);
     }
 
     public void updateGameBoard() {
-        if (this.sketch.frameCount % SPEED == 0) {
+        if (this.sketch.frameCount % SPEED == 0 && shouldKeepRunning()) {
             this.gameBoard.update();
-            controlSnakeIfCrossedEdge();
             controlSnakeIfAteFood();
             adjustVacantTileCache();
         }
+    }
+
+    private boolean shouldKeepRunning() {
+        if (this.numVacantTiles == 0 || hasSnakeHitEdge() || this.snake.ateItself()) {
+            this.isGameRunning = false;
+        }
+        return this.isGameRunning;
+    }
+
+    private boolean hasSnakeHitEdge() {
+        Position snakePosition = this.snake.getNextPosition();
+        if (snakePosition.x < 0 || snakePosition.x >= this.sketch.width || snakePosition.y < 0
+                || snakePosition.y >= this.sketch.height)
+            return true;
+        return false;
     }
 
     private void controlSnakeIfCrossedEdge() {
@@ -168,15 +191,16 @@ public class GameController {
         Position foodPosition = this.food.getPosition();
         if (snakePosition.equals(foodPosition)) {
             this.snake.eatFood();
-            this.food.setPosition(getNewFoodPosition());
+            this.food.setPosition(getRandomVacantPosition());
+            fillPosition(this.food.getPosition());
         }
     }
 
     private void adjustVacantTileCache() {
         Position toFree = this.snake.prevTailPosition;
         Position toFill = this.snake.getPosition();
-        fillPosition(toFill);
         vacatePosition(toFree);
+        fillPosition(toFill);
     }
 
     public void renderGameBoard() {

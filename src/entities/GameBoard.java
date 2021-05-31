@@ -37,7 +37,7 @@ public class GameBoard extends DrawableGameComponent {
     }
 
     public void render() {
-        displayBoard();
+        //displayBoard();
         for (DrawableGameComponent component : components) {
             component.render();
         }

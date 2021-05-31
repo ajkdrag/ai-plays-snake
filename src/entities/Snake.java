@@ -72,6 +72,17 @@ public class Snake extends DrawableGameComponent implements EventListener {
         this.length++;
     }
 
+    public boolean ateItself() {
+        Iterator<BodyPart> it = this.body.descendingIterator();
+        it.next();
+        while (it.hasNext()) {
+            BodyPart bodyPart = it.next();
+            if (bodyPart.getPosition().equals(this.position))
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public void setColor(int r, int g, int b, int a) {
         this.color.r = r;
@@ -83,9 +94,17 @@ public class Snake extends DrawableGameComponent implements EventListener {
         }
     }
 
+    public void setDirection(int newDirection) {
+        this.direction = newDirection;
+    }
+
+    public boolean invalidDirection() {
+        return this.direction < 0 || this.direction > 3;
+    }
+
     @Override
     public void update() {
-        if (direction >= 0 && direction < 4) {
+        if (!invalidDirection()) {
             Position tailPosition = this.body.peekFirst().getPosition();
             BodyPart newPart = new BodyPart(this.sketch, this.bodyPartSize);
             newPart.setColor(this.color);
