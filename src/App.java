@@ -15,6 +15,7 @@ class App extends PApplet {
     }
 
     public void setup() {
+        frameRate(60);
         this.gameController = new GameController(this);
         this.gameController.resetGame();
     }

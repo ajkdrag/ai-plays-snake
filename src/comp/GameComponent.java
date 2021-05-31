@@ -2,11 +2,12 @@ package src.comp;
 
 import src.utils.Position;
 
-public class GameComponent {
+public abstract class GameComponent {
     protected Position position = new Position(0, 0);
 
-    public void update() {
-    }
+    public abstract void update();
+
+    // setters
 
     public void setPosition(Position position) {
         this.position = position;
@@ -17,6 +18,8 @@ public class GameComponent {
         this.position.y = y;
     }
 
+    // getters
+    
     public Position getPosition() {
         return this.position;
     }

@@ -16,13 +16,15 @@ public class EventHandler {
         this.listeners.add(listener);
     }
 
-    public void setEventState(State state) {
-        this.event.setState(state);
-    }
-
     public void handleEvent() {
         for (EventListener listener : listeners) {
             listener.onEvent(event);
         }
+    }
+
+    // setters
+
+    public void setEventState(State state) {
+        this.event.setState(state);
     }
 }

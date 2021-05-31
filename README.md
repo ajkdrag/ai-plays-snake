@@ -1,2 +1,2 @@
-# AI-Plays-SpaceInvaders
-Classic Space Invaders game in Processing 3, with Q-Learning.
+# AI-Plays-Snake
+Classic Snake game in Java + Processing, with Q-Learning.

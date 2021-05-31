@@ -10,15 +10,33 @@ import src.evt.EventListener;
 import src.utils.Position;
 
 public class Snake extends DrawableGameComponent implements EventListener {
-    int length;
-    int direction = 3;
-    int[] dirX = { 0, 0, -1, 1 };
-    int[] dirY = { -1, 1, 0, 0 };
-    int bodyPartSize;
-    boolean isEventInQueue = false;
-    public boolean hasEatenFood = false;
+    class BodyPart extends DrawableGameComponent {
+        private int side;
+
+        public BodyPart(PApplet sketch, int side) {
+            super(sketch);
+            this.side = side;
+        }
+
+        public void render() {
+            this.sketch.stroke(this.color.r, this.color.g, this.color.b, this.color.a);
+            this.sketch.square(this.position.x, this.position.y, this.side);
+        }
+
+        @Override
+        public void update() {
+        }
+    }
+
+    private int length;
+    private int direction = 3;
+    private int[] dirX = { 0, 0, -1, 1 };
+    private int[] dirY = { -1, 1, 0, 0 };
+    private int bodyPartSize;
+    private boolean isReadyToHandleEvent = true;
+    private boolean hasEatenFood = false;
+    private Position prevTailPosition;
     public ArrayDeque<BodyPart> body;
-    public Position prevTailPosition;
 
     public Snake(PApplet sketch, int length, int bodyPartSize) {
         super(sketch);
@@ -34,37 +52,9 @@ public class Snake extends DrawableGameComponent implements EventListener {
         }
     }
 
-    @Override
-    public void setPosition(Position headPosition) {
-        this.position = headPosition;
-        Iterator<BodyPart> it = this.body.descendingIterator();
-        int currX = headPosition.x;
-        int currY = headPosition.y;
-        while (it.hasNext()) {
-            BodyPart bodyPart = it.next();
-            bodyPart.setPosition(currX, currY);
-            currX -= this.bodyPartSize;
-        }
-    }
-
     private void updatePrevTailPosition(Position tailPosition) {
         this.prevTailPosition.x = tailPosition.x;
         this.prevTailPosition.y = tailPosition.y;
-    }
-
-    public void setHeadPosition(int x, int y) {
-        this.position.x = x;
-        this.position.y = y;
-        this.body.peekLast().setPosition(x, y);
-    }
-
-    public void setHeadPosition(Position position) {
-        setHeadPosition(position.x, position.y);
-    }
-
-    public Position getNextPosition() {
-        return new Position(this.position.x + dirX[direction] * this.bodyPartSize,
-                this.position.y + dirY[direction] * this.bodyPartSize);
     }
 
     public void eatFood() {
@@ -72,32 +62,47 @@ public class Snake extends DrawableGameComponent implements EventListener {
         this.length++;
     }
 
-    @Override
-    public void setColor(int r, int g, int b, int a) {
-        this.color.r = r;
-        this.color.g = g;
-        this.color.b = b;
-        this.color.a = a;
-        for (BodyPart bodyPart : this.body) {
-            bodyPart.setColor(this.color);
+    public boolean hasEatenItself() {
+        Iterator<BodyPart> it = this.body.descendingIterator();
+        // ignore the head itself; check with body
+        it.next();
+        while (it.hasNext()) {
+            BodyPart bodyPart = it.next();
+            if (bodyPart.getPosition().equals(this.position))
+                return true;
         }
+        return false;
+    }
+
+    public boolean hasSnakeHitEdge() {
+        Position snakePosition = getNextPosition();
+        if (snakePosition.x < 0 || snakePosition.x >= this.sketch.width || snakePosition.y < 0
+                || snakePosition.y >= this.sketch.height)
+            return true;
+        return false;
+    }
+
+    public boolean isDirectionValid() {
+        return this.direction >= 0 && this.direction < 4;
     }
 
     @Override
     public void update() {
-        if (direction >= 0 && direction < 4) {
+        // sliding window concept for snake movement
+        if (isDirectionValid()) {
             Position tailPosition = this.body.peekFirst().getPosition();
-            BodyPart newPart = new BodyPart(this.sketch, this.bodyPartSize);
-            newPart.setColor(this.color);
-            this.body.offerLast(newPart);
+            BodyPart newHead = new BodyPart(this.sketch, this.bodyPartSize);
+            newHead.setColor(this.color);
+            this.body.offerLast(newHead);
             if (!this.hasEatenFood) {
+                // remove tail
                 this.body.pollFirst();
                 updatePrevTailPosition(tailPosition);
             }
             setHeadPosition(getNextPosition());
             this.hasEatenFood = false;
         }
-        this.isEventInQueue = false;
+        this.isReadyToHandleEvent = true;
     }
 
     @Override
@@ -109,10 +114,10 @@ public class Snake extends DrawableGameComponent implements EventListener {
 
     @Override
     public void onEvent(Event event) {
-        if (this.isEventInQueue)
+        if (!this.isReadyToHandleEvent)
             return;
-        this.isEventInQueue = true;
-        switch (event.state) {
+        this.isReadyToHandleEvent = false;
+        switch (event.getState()) {
             case KEY_PRESSED_UP:
                 if (this.direction != 1)
                     this.direction = 0;
@@ -134,18 +139,54 @@ public class Snake extends DrawableGameComponent implements EventListener {
         }
     }
 
-    class BodyPart extends DrawableGameComponent {
-        private int side;
+    // setters
 
-        public BodyPart(PApplet sketch, int side) {
-            super(sketch);
-            this.side = side;
+    public void setHeadPosition(int x, int y) {
+        this.position.x = x;
+        this.position.y = y;
+        this.body.peekLast().setPosition(x, y);
+    }
+
+    public void setHeadPosition(Position position) {
+        setHeadPosition(position.x, position.y);
+    }
+
+    public void setDirection(int newDirection) {
+        this.direction = newDirection;
+    }
+
+    @Override
+    public void setPosition(Position headPosition) {
+        this.position = headPosition;
+        Iterator<BodyPart> it = this.body.descendingIterator();
+        int currX = headPosition.x;
+        int currY = headPosition.y;
+        while (it.hasNext()) {
+            BodyPart bodyPart = it.next();
+            bodyPart.setPosition(currX, currY);
+            currX -= this.bodyPartSize;
         }
+    }
 
-        public void render() {
-            this.sketch.stroke(this.color.r, this.color.g, this.color.b, this.color.a);
-            this.sketch.square(this.position.x, this.position.y, this.side);
+    @Override
+    public void setColor(int r, int g, int b, int a) {
+        this.color.r = r;
+        this.color.g = g;
+        this.color.b = b;
+        this.color.a = a;
+        for (BodyPart bodyPart : this.body) {
+            bodyPart.setColor(this.color);
         }
+    }
 
+    // getters
+
+    public Position getNextPosition() {
+        return new Position(this.position.x + dirX[direction] * this.bodyPartSize,
+                this.position.y + dirY[direction] * this.bodyPartSize);
+    }
+
+    public Position getPrevTailPosition() {
+        return this.prevTailPosition;
     }
 }

@@ -10,20 +10,18 @@ import src.entities.GameBoard;
 import src.utils.Position;
 
 public class GameController {
+    private boolean isGameRunning;
     private PApplet sketch;
 
     private GameBoard gameBoard;
     private Food food;
     private Snake snake;
 
-    private int numVacantTiles;
-    private int[] vacantList, vacantMap;
-
     private EventHandler eventHandler;
 
     // lower = faster
     private static final int SPEED = 10;
-    private static final int TILE_SIZE = 40;
+    private static final int TILE_SIZE = 10;
 
     private static final int SNAKE_LENGTH = 4;
     private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
@@ -33,150 +31,83 @@ public class GameController {
     public GameController(PApplet sketch) {
         this.sketch = sketch;
         this.eventHandler = new EventHandler();
+        this.isGameRunning = true;
     }
 
     public void resetGame() {
         createGameBoard();
-        createComponentsForGameBoard();
-        cacheVacantTiles();
-        addComponentsToGameBoard();
+        createAndAddComponentsToGameBoard();
         attachEventListeners();
     }
 
     public void createGameBoard() {
-        this.gameBoard = new GameBoard(this.sketch, this.sketch.width, this.sketch.height, TILE_SIZE);
+        this.gameBoard = new GameBoard(this.sketch, this.sketch.height / TILE_SIZE, this.sketch.width / TILE_SIZE,
+                TILE_SIZE);
         this.gameBoard.setColor(0, 220, 0, 220);
     }
 
-    private void cacheVacantTiles() {
-        this.vacantList = new int[this.gameBoard.nRows * this.gameBoard.nCols];
-        this.vacantMap = new int[this.vacantList.length];
-        this.numVacantTiles = this.vacantList.length;
-        for (int i = 0, end = this.vacantList.length; i < end; ++i) {
-            this.vacantList[i] = i;
-            this.vacantMap[i] = i;
-        }
-
-        for (DrawableGameComponent bodyPart : this.snake.body) {
-            fillPosition(bodyPart.getPosition());
-        }
-        fillPosition(this.food.getPosition());
-    }
-
-    private void fillPosition(Position position) {
-        int relX = position.x / TILE_SIZE;
-        int relY = position.y / TILE_SIZE;
-        int tile = relY * this.gameBoard.nCols + relX;
-        fillTile(tile);
-    }
-
-    private void vacatePosition(Position position) {
-        int relX = position.x / TILE_SIZE;
-        int relY = position.y / TILE_SIZE;
-        int tile = relY * this.gameBoard.nCols + relX;
-        vacateTile(tile);
-    }
-
-    private void vacateTile(int x) {
-        vacantList[numVacantTiles] = x;
-        vacantMap[x] = numVacantTiles;
-        ++numVacantTiles;
-    }
-
-    private void fillTile(int x) {
-        int positionInVacantList = vacantMap[x];
-        if (positionInVacantList == -1)
-            return;
-        if (positionInVacantList == numVacantTiles - 1) {
-            --numVacantTiles;
-            vacantMap[x] = -1;
-            return;
-        }
-        int lastVacantTile = vacantList[numVacantTiles - 1];
-        vacantList[positionInVacantList] = lastVacantTile;
-        vacantMap[lastVacantTile] = positionInVacantList;
-        vacantList[numVacantTiles - 1] = x;
-        vacantMap[x] = -1;
-        --numVacantTiles;
-    }
-
-    public void createComponentsForGameBoard() {
+    private void createAndAddComponentsToGameBoard() {
         createSnake();
+        addSnakeToGameBoard();
         createFood();
-    }
-
-    public void addComponentsToGameBoard() {
-        this.gameBoard.addDrawableGameComponent(this.food);
-        this.gameBoard.addDrawableGameComponent(this.snake);
+        addFoodToGameBoard();
     }
 
     public void attachEventListeners() {
         this.eventHandler.addListener(this.snake);
     }
 
-    private void createFood() {
-        this.food = new Food(this.sketch, FOOD_SIZE);
-        this.food.setPosition(Position.getRandomPosition(this.gameBoard.nCols / 4, this.gameBoard.nRows / 4)
-                .scale(TILE_SIZE, TILE_SIZE));
-        this.food.setColor(220, 0, 0, 220);
-    }
-
-    private Position getNewFoodPosition() {
-        return Position.getRandomPosition(this.gameBoard.nCols / 4, this.gameBoard.nRows / 4).scale(TILE_SIZE,
-                TILE_SIZE);
-    }
-
     private void createSnake() {
         this.snake = new Snake(this.sketch, SNAKE_LENGTH, SNAKE_BODY_PART_SIZE);
         this.snake.createBody();
-        this.snake.setPosition(
-                new Position(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2).scale(TILE_SIZE, TILE_SIZE));
+        this.snake.setPosition(Position.getRandomPosition(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2)
+                .scale(TILE_SIZE, TILE_SIZE));
         this.snake.setColor(0, 0, 220, 220);
     }
 
+    private void addSnakeToGameBoard() {
+        this.gameBoard.addDrawableGameComponent(this.snake);
+        for (DrawableGameComponent bodyPart : this.snake.body) {
+            this.gameBoard.fillPosition(bodyPart.getPosition());
+        }
+    }
+
+    private void createFood() {
+        this.food = new Food(this.sketch, FOOD_SIZE);
+        this.food.setPosition(this.gameBoard.getRandomVacantPosition());
+        this.food.setColor(220, 0, 0, 220);
+    }
+
+    private void addFoodToGameBoard() {
+        this.gameBoard.addDrawableGameComponent(this.food);
+        this.gameBoard.fillPosition(this.food.getPosition());
+    }
+
     public void updateGameBoard() {
-        if (this.sketch.frameCount % SPEED == 0) {
+        if (this.sketch.frameCount % SPEED == 0 && shouldKeepRunning()) {
             this.gameBoard.update();
-            controlSnakeIfCrossedEdge();
-            controlSnakeIfAteFood();
-            adjustVacantTileCache();
+            updateTileStates();
         }
     }
 
-    private void controlSnakeIfCrossedEdge() {
-        Position snakePosition = this.snake.getPosition();
-        if (snakePosition.x < 0) {
-            this.snake.setHeadPosition(this.sketch.width - SNAKE_BODY_PART_SIZE, snakePosition.y);
-            return;
+    private boolean shouldKeepRunning() {
+        if (this.gameBoard.getNumVacantTiles() == 0 || this.snake.hasSnakeHitEdge() || this.snake.hasEatenItself()) {
+            this.isGameRunning = false;
         }
-        if (snakePosition.x >= this.sketch.width) {
-            this.snake.setHeadPosition(0, snakePosition.y);
-            return;
-        }
-        if (snakePosition.y < 0) {
-            this.snake.setHeadPosition(snakePosition.x, this.sketch.height - SNAKE_BODY_PART_SIZE);
-            return;
-        }
-        if (snakePosition.y >= this.sketch.height) {
-            this.snake.setHeadPosition(snakePosition.x, 0);
-            return;
-        }
+        return this.isGameRunning;
     }
 
-    private void controlSnakeIfAteFood() {
+    private void updateTileStates() {
+        Position toFree = this.snake.getPrevTailPosition();
         Position snakePosition = this.snake.getPosition();
+        this.gameBoard.vacatePosition(toFree);
+        this.gameBoard.fillPosition(snakePosition);
         Position foodPosition = this.food.getPosition();
         if (snakePosition.equals(foodPosition)) {
             this.snake.eatFood();
-            this.food.setPosition(getNewFoodPosition());
+            this.food.setPosition(this.gameBoard.getRandomVacantPosition());
+            this.gameBoard.fillPosition(this.food.getPosition());
         }
-    }
-
-    private void adjustVacantTileCache() {
-        Position toFree = this.snake.prevTailPosition;
-        Position toFill = this.snake.getPosition();
-        fillPosition(toFill);
-        vacatePosition(toFree);
     }
 
     public void renderGameBoard() {

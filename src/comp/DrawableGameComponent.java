@@ -11,6 +11,9 @@ public abstract class DrawableGameComponent extends GameComponent implements Dra
         this.sketch = sketch;
     }
 
+    public abstract void render();
+
+    // setters
     public void setColor(Color color) {
         this.color = color;
     }
@@ -22,10 +25,9 @@ public abstract class DrawableGameComponent extends GameComponent implements Dra
         this.color.a = a;
     }
 
+    // getters
+
     public Color getColor() {
         return this.color;
-    }
-
-    public void render() {
     }
 }
