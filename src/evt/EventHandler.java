@@ -12,6 +12,10 @@ public class EventHandler {
         this.event = new Event();
     }
 
+    public void reset() {
+        this.listeners.clear();
+    }
+
     public void addListener(EventListener listener) {
         this.listeners.add(listener);
     }

@@ -14,14 +14,14 @@ class App extends PApplet {
         PApplet.runSketch(processingArgs, app);
     }
 
+    public void settings() {
+        setSize(W, H);
+    }
+
     public void setup() {
         frameRate(60);
         this.gameController = new GameController(this);
         this.gameController.resetGame();
-    }
-
-    public void settings() {
-        setSize(W, H);
     }
 
     public void draw() {

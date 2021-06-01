@@ -76,8 +76,8 @@ public class Snake extends DrawableGameComponent implements EventListener {
 
     public boolean hasSnakeHitEdge() {
         Position snakePosition = getNextPosition();
-        if (snakePosition.x < 0 || snakePosition.x >= this.sketch.width || snakePosition.y < 0
-                || snakePosition.y >= this.sketch.height)
+        if (snakePosition.x < 0 || snakePosition.x + this.bodyPartSize > this.sketch.width || snakePosition.y < 0
+                || snakePosition.y + this.bodyPartSize > this.sketch.height)
             return true;
         return false;
     }
@@ -116,23 +116,22 @@ public class Snake extends DrawableGameComponent implements EventListener {
     public void onEvent(Event event) {
         if (!this.isReadyToHandleEvent)
             return;
-        this.isReadyToHandleEvent = false;
         switch (event.getState()) {
             case KEY_PRESSED_UP:
                 if (this.direction != 1)
-                    this.direction = 0;
+                    setDirection(0);
                 break;
             case KEY_PRESSED_DOWN:
                 if (this.direction != 0)
-                    this.direction = 1;
+                    setDirection(1);
                 break;
             case KEY_PRESSED_LEFT:
                 if (this.direction != 3)
-                    this.direction = 2;
+                    setDirection(2);
                 break;
             case KEY_PRESSED_RIGHT:
                 if (this.direction != 2)
-                    this.direction = 3;
+                    setDirection(3);
                 break;
             default:
                 break;
@@ -151,8 +150,9 @@ public class Snake extends DrawableGameComponent implements EventListener {
         setHeadPosition(position.x, position.y);
     }
 
-    public void setDirection(int newDirection) {
+    private void setDirection(int newDirection) {
         this.direction = newDirection;
+        this.isReadyToHandleEvent = false;
     }
 
     @Override
