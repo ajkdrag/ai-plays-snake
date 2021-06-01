@@ -4,13 +4,16 @@ import processing.core.PApplet;
 import src.comp.DrawableGameComponent;
 import src.entities.Food;
 import src.entities.Snake;
+import src.evt.Event;
 import src.evt.EventHandler;
+import src.evt.EventListener;
 import src.evt.State;
 import src.entities.GameBoard;
 import src.utils.Position;
 
-public class GameController {
-    private boolean isGameRunning;
+public class GameController implements EventListener {
+    private State gameState = State.GAME_STATE_ENDED;
+    private State prevGameState;
     private PApplet sketch;
 
     private GameBoard gameBoard;
@@ -20,7 +23,7 @@ public class GameController {
     private EventHandler eventHandler;
 
     // lower = faster
-    private static final int SPEED = 10;
+    private static final int SPEED = 6;
     private static final int TILE_SIZE = 10;
 
     private static final int SNAKE_LENGTH = 4;
@@ -31,16 +34,16 @@ public class GameController {
     public GameController(PApplet sketch) {
         this.sketch = sketch;
         this.eventHandler = new EventHandler();
-        this.isGameRunning = true;
     }
 
     public void resetGame() {
         createGameBoard();
         createAndAddComponentsToGameBoard();
-        attachEventListeners();
+        setupEventListeners();
+        startGame();
     }
 
-    public void createGameBoard() {
+    private void createGameBoard() {
         this.gameBoard = new GameBoard(this.sketch, this.sketch.height / TILE_SIZE, this.sketch.width / TILE_SIZE,
                 TILE_SIZE);
         this.gameBoard.setColor(0, 220, 0, 220);
@@ -53,15 +56,22 @@ public class GameController {
         addFoodToGameBoard();
     }
 
-    public void attachEventListeners() {
+    private void setupEventListeners() {
+        this.eventHandler.reset();
         this.eventHandler.addListener(this.snake);
+        this.eventHandler.addListener(this.gameBoard);
+        this.eventHandler.addListener(this);
+    }
+
+    private void startGame() {
+        this.gameState = State.GAME_STATE_RUNNING;
     }
 
     private void createSnake() {
         this.snake = new Snake(this.sketch, SNAKE_LENGTH, SNAKE_BODY_PART_SIZE);
         this.snake.createBody();
-        this.snake.setPosition(Position.getRandomPosition(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2)
-                .scale(TILE_SIZE, TILE_SIZE));
+        this.snake.setPosition(
+                new Position(this.gameBoard.nCols / 2, this.gameBoard.nRows / 2).scale(TILE_SIZE, TILE_SIZE));
         this.snake.setColor(0, 0, 220, 220);
     }
 
@@ -84,17 +94,26 @@ public class GameController {
     }
 
     public void updateGameBoard() {
-        if (this.sketch.frameCount % SPEED == 0 && shouldKeepRunning()) {
-            this.gameBoard.update();
-            updateTileStates();
+        if (this.sketch.frameCount % SPEED == 0) {
+            if (shouldUpdate()) {
+                this.gameBoard.update();
+                updateTileStates();
+            }
+            prevGameState = gameState;
         }
     }
 
-    private boolean shouldKeepRunning() {
+    private boolean shouldUpdate() {
+        if (this.gameState == State.GAME_STATE_RUNNING && this.gameState == this.prevGameState)
+            return hasGameEnded();
+        return false;
+    }
+
+    private boolean hasGameEnded() {
         if (this.gameBoard.getNumVacantTiles() == 0 || this.snake.hasSnakeHitEdge() || this.snake.hasEatenItself()) {
-            this.isGameRunning = false;
+            this.gameState = State.GAME_STATE_ENDED;
         }
-        return this.isGameRunning;
+        return this.gameState == State.GAME_STATE_RUNNING;
     }
 
     private void updateTileStates() {
@@ -114,17 +133,49 @@ public class GameController {
         this.gameBoard.render();
     }
 
+    @Override
+    public void onEvent(Event event) {
+        switch (event.getState()) {
+            case KEY_PRESSED_SHIFT:
+                this.resetGame();
+                break;
+            case KEY_PRESSED_SPACE:
+                if (this.gameState == State.GAME_STATE_RUNNING)
+                    this.gameState = State.GAME_STATE_PAUSED;
+                else if (this.gameState == State.GAME_STATE_PAUSED)
+                    this.gameState = State.GAME_STATE_RUNNING;
+                break;
+            default:
+                break;
+        }
+    }
+
     public void keyPressed() {
-        if (this.sketch.keyCode == PApplet.UP) {
-            this.eventHandler.setEventState(State.KEY_PRESSED_UP);
-        } else if (this.sketch.keyCode == PApplet.DOWN) {
-            this.eventHandler.setEventState(State.KEY_PRESSED_DOWN);
-        } else if (this.sketch.keyCode == PApplet.LEFT) {
-            this.eventHandler.setEventState(State.KEY_PRESSED_LEFT);
-        } else if (this.sketch.keyCode == PApplet.RIGHT) {
-            this.eventHandler.setEventState(State.KEY_PRESSED_RIGHT);
-        } else {
-            this.eventHandler.setEventState(State.KEY_INVALID);
+        switch (this.sketch.keyCode) {
+            case PApplet.UP:
+                this.eventHandler.setEventState(State.KEY_PRESSED_UP);
+                break;
+            case PApplet.DOWN:
+                this.eventHandler.setEventState(State.KEY_PRESSED_DOWN);
+                break;
+            case PApplet.LEFT:
+                this.eventHandler.setEventState(State.KEY_PRESSED_LEFT);
+                break;
+            case PApplet.RIGHT:
+                this.eventHandler.setEventState(State.KEY_PRESSED_RIGHT);
+                break;
+            case PApplet.SHIFT:
+                this.eventHandler.setEventState(State.KEY_PRESSED_SHIFT);
+                break;
+            case PApplet.TAB:
+                this.eventHandler.setEventState(State.KEY_PRESSED_TAB);
+                break;
+            case ' ':
+                this.eventHandler.setEventState(State.KEY_PRESSED_SPACE);
+                break;
+            default:
+                this.eventHandler.setEventState(State.KEY_INVALID);
+                break;
         }
         this.eventHandler.handleEvent();
     }
