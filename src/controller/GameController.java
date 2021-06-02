@@ -9,6 +9,7 @@ import src.evt.EventHandler;
 import src.evt.EventListener;
 import src.evt.State;
 import src.entities.GameBoard;
+import src.entities.Score;
 import src.utils.Position;
 
 public class GameController implements EventListener {
@@ -19,6 +20,7 @@ public class GameController implements EventListener {
     private GameBoard gameBoard;
     private Food food;
     private Snake snake;
+    private Score scoreBoard;
 
     private EventHandler eventHandler;
 
@@ -30,6 +32,8 @@ public class GameController implements EventListener {
     private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
 
     private static final int FOOD_SIZE = TILE_SIZE;
+
+    private static final int TEXT_SIZE = 20;
 
     public GameController(PApplet sketch) {
         this.sketch = sketch;
@@ -54,12 +58,15 @@ public class GameController implements EventListener {
         addSnakeToGameBoard();
         createFood();
         addFoodToGameBoard();
+        createScoreBoard();
+        addScoreBoardToGameBoard();
     }
 
     private void setupEventListeners() {
         this.eventHandler.reset();
         this.eventHandler.addListener(this.snake);
         this.eventHandler.addListener(this.gameBoard);
+        this.eventHandler.addListener(this.scoreBoard);
         this.eventHandler.addListener(this);
     }
 
@@ -93,6 +100,16 @@ public class GameController implements EventListener {
         this.gameBoard.fillPosition(this.food.getPosition());
     }
 
+    private void createScoreBoard() {
+        this.scoreBoard = new Score(this.sketch, TEXT_SIZE);
+        this.scoreBoard.setPosition(10, 10 + TEXT_SIZE);
+        this.scoreBoard.setColor(10, 10, 10, 50);
+    }
+
+    private void addScoreBoardToGameBoard() {
+        this.gameBoard.addDrawableGameComponent(this.scoreBoard);
+    }
+
     public void updateGameBoard() {
         if (this.sketch.frameCount % SPEED == 0) {
             if (shouldUpdate()) {
@@ -124,6 +141,8 @@ public class GameController implements EventListener {
         Position foodPosition = this.food.getPosition();
         if (snakePosition.equals(foodPosition)) {
             this.snake.eatFood();
+            this.eventHandler.setEventState(State.FOOD_EATEN);
+            this.eventHandler.handleEvent();
             this.food.setPosition(this.gameBoard.getRandomVacantPosition());
             this.gameBoard.fillPosition(this.food.getPosition());
         }
