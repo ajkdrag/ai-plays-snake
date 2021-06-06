@@ -26,8 +26,8 @@ class App extends PApplet {
 
     public void draw() {
         background(220);
-        this.gameController.updateGameBoard();
-        this.gameController.renderGameBoard();
+        this.gameController.updateGame();
+        this.gameController.renderGame();
     }
 
     public void keyPressed() {
