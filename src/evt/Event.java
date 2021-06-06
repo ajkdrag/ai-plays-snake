@@ -1,7 +1,7 @@
 package src.evt;
 
 public class Event {
-    private State state;
+    private State state = State.KEY_INVALID;
 
     public void setState(State state) {
         this.state = state;

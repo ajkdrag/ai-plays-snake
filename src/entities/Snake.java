@@ -19,7 +19,8 @@ public class Snake extends DrawableGameComponent implements EventListener {
         }
 
         public void render() {
-            this.sketch.stroke(this.color.r, this.color.g, this.color.b, this.color.a);
+            this.sketch.noStroke();
+            this.sketch.fill(this.color.r, this.color.g, this.color.b, this.color.a);
             this.sketch.square(this.position.x, this.position.y, this.side);
         }
 
@@ -29,11 +30,11 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     private int length;
-    private int direction = 3;
+    private int assumedDirection = 3;
+    private int traversedDirection = 3;
     private int[] dirX = { 0, 0, -1, 1 };
     private int[] dirY = { -1, 1, 0, 0 };
     private int bodyPartSize;
-    private boolean isReadyToHandleEvent = true;
     private boolean hasEatenFood = false;
     private Position prevTailPosition;
     public ArrayDeque<BodyPart> body;
@@ -83,13 +84,14 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     public boolean isDirectionValid() {
-        return this.direction >= 0 && this.direction < 4;
+        return this.assumedDirection >= 0 && this.assumedDirection < 4;
     }
 
     @Override
     public void update() {
         // sliding window concept for snake movement
         if (isDirectionValid()) {
+            this.traversedDirection = assumedDirection;
             Position tailPosition = this.body.peekFirst().getPosition();
             BodyPart newHead = new BodyPart(this.sketch, this.bodyPartSize);
             newHead.setColor(this.color);
@@ -102,7 +104,6 @@ public class Snake extends DrawableGameComponent implements EventListener {
             setHeadPosition(getNextPosition());
             this.hasEatenFood = false;
         }
-        this.isReadyToHandleEvent = true;
     }
 
     @Override
@@ -114,23 +115,21 @@ public class Snake extends DrawableGameComponent implements EventListener {
 
     @Override
     public void onEvent(Event event) {
-        if (!this.isReadyToHandleEvent)
-            return;
         switch (event.getState()) {
             case KEY_PRESSED_UP:
-                if (this.direction != 1)
+                if (this.traversedDirection != 1)
                     setDirection(0);
                 break;
             case KEY_PRESSED_DOWN:
-                if (this.direction != 0)
+                if (this.traversedDirection != 0)
                     setDirection(1);
                 break;
             case KEY_PRESSED_LEFT:
-                if (this.direction != 3)
+                if (this.traversedDirection != 3)
                     setDirection(2);
                 break;
             case KEY_PRESSED_RIGHT:
-                if (this.direction != 2)
+                if (this.traversedDirection != 2)
                     setDirection(3);
                 break;
             default:
@@ -151,8 +150,7 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     private void setDirection(int newDirection) {
-        this.direction = newDirection;
-        this.isReadyToHandleEvent = false;
+        this.assumedDirection = newDirection;
     }
 
     @Override
@@ -182,8 +180,8 @@ public class Snake extends DrawableGameComponent implements EventListener {
     // getters
 
     public Position getNextPosition() {
-        return new Position(this.position.x + dirX[direction] * this.bodyPartSize,
-                this.position.y + dirY[direction] * this.bodyPartSize);
+        return new Position(this.position.x + dirX[this.assumedDirection] * this.bodyPartSize,
+                this.position.y + dirY[this.assumedDirection] * this.bodyPartSize);
     }
 
     public Position getPrevTailPosition() {
