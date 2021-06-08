@@ -1,9 +1,13 @@
-package src.fsm;
+package src.fsm.modes;
 
 import src.controller.GameController;
 import src.evt.State;
 
-public class RunningState implements GameState {
+public class ManualMode implements GameMode {
+    @Override
+    public void enter() {
+
+    }
 
     @Override
     public void handleInput(GameController game, int keyCode) {
@@ -29,27 +33,27 @@ public class RunningState implements GameState {
                 game.eventHandler.handleEvent();
                 break;
             case 'R':
-                game.eventHandler.setEventState(State.KEY_PRESSED_SHIFT);
                 game.resetGame();
                 break;
-            case ' ':
-                game.eventHandler.setEventState(State.KEY_PRESSED_SPACE);
-                game.gameState = GameState.pausedState;
+            case 'Q':
+                game.gameMode = GameMode.aiTestMode;
+                break;
+            case 'T':
+                game.resetGame();
+                game.gameMode = GameMode.aiTrainMode;
+                game.gameMode.enter();
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);
                 break;
         }
+
+        game.gameState.handleInput(game, keyCode);
     }
 
     @Override
     public void update(GameController game) {
-        if (game.hasGameEnded()) {
-            game.gameState = GameState.endedState;
-            return;
-        }
-        game.updateGameBoard();
-        game.updateTileStates();
+        game.gameState.update(game);
     }
 
 }

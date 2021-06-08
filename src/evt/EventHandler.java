@@ -1,14 +1,13 @@
 package src.evt;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
 public class EventHandler {
-    private List<EventListener> listeners;
+    private HashSet<EventListener> listeners;
     private Event event;
 
     public EventHandler() {
-        this.listeners = new ArrayList<>();
+        this.listeners = new HashSet<>();
         this.event = new Event();
     }
 
@@ -18,6 +17,11 @@ public class EventHandler {
 
     public void addListener(EventListener listener) {
         this.listeners.add(listener);
+    }
+
+    public void removeListener(EventListener listener) {
+        if (this.listeners.contains(listener))
+            this.listeners.remove(listener);
     }
 
     public void handleEvent() {

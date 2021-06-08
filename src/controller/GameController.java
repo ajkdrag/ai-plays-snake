@@ -6,7 +6,8 @@ import src.entities.Food;
 import src.entities.Snake;
 import src.evt.EventHandler;
 import src.evt.State;
-import src.fsm.GameState;
+import src.fsm.modes.GameMode;
+import src.fsm.states.GameState;
 import src.entities.GameBoard;
 import src.entities.Score;
 import src.utils.Position;
@@ -33,7 +34,8 @@ public class GameController {
     private static final int TEXT_SIZE = 20;
 
     // modes and states
-    public GameState gameState;
+    public GameState gameState = GameState.runningState;
+    public GameMode gameMode = GameMode.manualMode;
 
     public GameController(PApplet sketch) {
         this.sketch = sketch;
@@ -45,7 +47,7 @@ public class GameController {
         createGameBoard();
         createAndAddComponentsToGameBoard();
         setupEventListeners();
-        startGame();
+        gameState = GameState.runningState;
     }
 
     private void createGameBoard() {
@@ -68,10 +70,6 @@ public class GameController {
         this.eventHandler.addListener(this.snake);
         this.eventHandler.addListener(this.gameBoard);
         this.eventHandler.addListener(this.scoreBoard);
-    }
-
-    private void startGame() {
-        this.gameState = GameState.runningState;
     }
 
     private void createSnake() {
@@ -120,7 +118,7 @@ public class GameController {
 
     public void updateGame() {
         if (this.sketch.frameCount % SNAKE_SPEED == 0) {
-            this.gameState.update(this);
+            this.gameMode.update(this);
         }
     }
 
@@ -144,7 +142,7 @@ public class GameController {
     }
 
     public void keyPressed() {
-        this.gameState.handleInput(this, this.sketch.keyCode);
+        this.gameMode.handleInput(this, this.sketch.keyCode);
     }
 
 }

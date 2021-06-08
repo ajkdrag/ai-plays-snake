@@ -1,4 +1,4 @@
-package src.fsm;
+package src.fsm.states;
 
 import src.controller.GameController;
 

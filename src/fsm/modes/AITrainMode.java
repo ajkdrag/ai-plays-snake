@@ -1,0 +1,40 @@
+package src.fsm.modes;
+
+import src.controller.GameController;
+import src.evt.State;
+import src.fsm.states.GameState;
+
+public class AITrainMode implements GameMode {
+    int numEpisodes;
+
+    @Override
+    public void enter() {
+        this.numEpisodes = 3;
+    }
+
+    @Override
+    public void handleInput(GameController game, int keyCode) {
+        switch (keyCode) {
+            case '\t':
+                game.eventHandler.setEventState(State.KEY_PRESSED_TAB);
+                game.eventHandler.handleEvent();
+                break;
+            case 'R':
+                game.resetGame();
+                game.gameMode = GameMode.manualMode;
+                break;
+            default:
+                game.eventHandler.setEventState(State.KEY_INVALID);
+                break;
+        }
+        game.gameState.handleInput(game, keyCode);
+    }
+
+    @Override
+    public void update(GameController game) {
+        game.gameState.update(game);
+        if (game.gameState == GameState.endedState && this.numEpisodes-- > 0)
+            game.resetGame();
+    }
+
+}
