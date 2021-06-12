@@ -30,10 +30,10 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     private int length;
-    private int assumedDirection = 3;
-    private int traversedDirection = 3;
-    private int[] dirX = { 0, 0, -1, 1 };
-    private int[] dirY = { -1, 1, 0, 0 };
+    private int assumedDirection = 1;
+    private int traversedDirection = 1;
+    private int[] dirX = { 0, 1, 0, -1 };
+    private int[] dirY = { -1, 0, 1, 0 };
     private int bodyPartSize;
     private boolean hasEatenFood = false;
     private Position prevTailPosition;
@@ -83,6 +83,27 @@ public class Snake extends DrawableGameComponent implements EventListener {
         return false;
     }
 
+    public int hasWallInThisDirection(int direction) {
+        int ans = 0;
+        switch (direction) {
+            case 0:
+                ans = this.position.y <= 0 ? 1 : 0;
+                break;
+            case 1:
+                ans = this.position.x + this.bodyPartSize >= this.sketch.width ? 1 : 0;
+                break;
+            case 2:
+                ans = this.position.y + this.bodyPartSize >= this.sketch.height ? 1 : 0;
+                break;
+            case 3:
+                ans = this.position.x <= 0 ? 1 : 0;
+                break;
+            default:
+                break;
+        }
+        return ans;
+    }
+
     public boolean isDirectionValid() {
         return this.assumedDirection >= 0 && this.assumedDirection < 4;
     }
@@ -117,20 +138,20 @@ public class Snake extends DrawableGameComponent implements EventListener {
     public void onEvent(Event event) {
         switch (event.getState()) {
             case KEY_PRESSED_UP:
-                if (this.traversedDirection != 1)
+                if (this.traversedDirection != 2)
                     setDirection(0);
                 break;
             case KEY_PRESSED_DOWN:
                 if (this.traversedDirection != 0)
-                    setDirection(1);
-                break;
-            case KEY_PRESSED_LEFT:
-                if (this.traversedDirection != 3)
                     setDirection(2);
                 break;
-            case KEY_PRESSED_RIGHT:
-                if (this.traversedDirection != 2)
+            case KEY_PRESSED_LEFT:
+                if (this.traversedDirection != 1)
                     setDirection(3);
+                break;
+            case KEY_PRESSED_RIGHT:
+                if (this.traversedDirection != 3)
+                    setDirection(1);
                 break;
             default:
                 break;
@@ -184,7 +205,15 @@ public class Snake extends DrawableGameComponent implements EventListener {
                 this.position.y + dirY[this.assumedDirection] * this.bodyPartSize);
     }
 
+    public Position getTailPosition() {
+        return this.body.getFirst().getPosition();
+    }
+
     public Position getPrevTailPosition() {
         return this.prevTailPosition;
+    }
+
+    public int getDirection() {
+        return this.traversedDirection;
     }
 }

@@ -1,4 +1,4 @@
-package src.fsm;
+package src.fsm.states;
 
 import src.controller.GameController;
 import src.evt.State;
@@ -11,9 +11,6 @@ public class EndedState implements GameState {
             case 'R':
                 game.eventHandler.setEventState(State.KEY_PRESSED_SHIFT);
                 game.resetGame();
-                break;
-            default:
-                game.eventHandler.setEventState(State.KEY_INVALID);
                 break;
         }
     }
