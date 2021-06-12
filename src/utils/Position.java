@@ -23,6 +23,50 @@ public class Position {
         return this;
     }
 
+    public int getRelation(int directionFirst, Position second) {
+        int x2 = second.x;
+        int y2 = second.y;
+        int ans = 0;
+        switch (directionFirst) {
+            case 0:
+                ans = x2 < this.x ? 0 : 1;
+                break;
+            case 2:
+                ans = x2 <= this.x ? 1 : 0;
+                break;
+            case 1:
+                ans = y2 > this.y ? 0 : 1;
+                break;
+            case 3:
+                ans = y2 >= this.y ? 1 : 0;
+                break;
+            default:
+                break;
+        }
+        return ans;
+    }
+
+    public int willHitBoundary(int directionFirst, int boundDown, int boundUp, int boundLeft, int boundRight) {
+        int ans = 0;
+        switch (directionFirst) {
+            case 0:
+                ans = this.y <= boundUp ? 1 : 0;
+                break;
+            case 1:
+                ans = this.x >= boundRight ? 1 : 0;
+                break;
+            case 2:
+                ans = this.y >= boundDown ? 1 : 0;
+                break;
+            case 3:
+                ans = this.x <= boundLeft ? 1 : 0;
+                break;
+            default:
+                break;
+        }
+        return ans;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other.getClass() != this.getClass()) {

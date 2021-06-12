@@ -35,4 +35,8 @@ public class Score extends DrawableGameComponent implements EventListener {
     public void update() {
     }
 
+    // getters
+    public int getScore() {
+        return this.score;
+    }
 }

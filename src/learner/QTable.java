@@ -21,13 +21,13 @@ public class QTable {
         this.qTable = new ArrayList<>();
     }
 
-    public void initQTable() {
+    public void initEmptyQTable() {
         for (int i = 0; i < this.numStates; ++i) {
-            List<Double> actions = new ArrayList<>();
+            List<Double> rewards = new ArrayList<>();
             for (int j = 0; j < this.numActions; ++j) {
-                actions.add(0.0);
+                rewards.add(0.0);
             }
-            this.qTable.add(actions);
+            this.qTable.add(rewards);
         }
     }
 
@@ -60,7 +60,42 @@ public class QTable {
         }
     }
 
+    // setters
+
+    public void setQValue(int idxState, int idxAction, double newValue) {
+        this.qTable.get(idxState).set(idxAction, newValue);
+    }
+
+    // getters
+    public double max(List<Double> x) {
+        double mx = x.get(0);
+        for (double val : x)
+            mx = val > mx ? val : mx;
+        return mx;
+    }
+
+    public int argMax(List<Double> x) {
+        int idx = 0;
+        double mx = x.get(idx);
+        for (int i = 0, end = x.size(); i < end; ++i) {
+            double curr = x.get(i);
+            if (curr > mx) {
+                idx = i;
+                mx = curr;
+            }
+        }
+        return idx;
+    }
+
     public double getQValue(int idxState, int idxAction) {
         return this.qTable.get(idxState).get(idxAction);
+    }
+
+    public double getMaxRewardForThisState(int idxState) {
+        return max(this.qTable.get(idxState));
+    }
+
+    public int getArgMaxRewardForThisState(int idxState) {
+        return argMax(this.qTable.get(idxState));
     }
 }

@@ -8,30 +8,31 @@ import src.evt.EventHandler;
 import src.evt.State;
 import src.fsm.modes.GameMode;
 import src.fsm.states.GameState;
+import src.learner.AgentStateHandler;
+import src.learner.QLearner;
 import src.entities.GameBoard;
 import src.entities.Score;
 import src.utils.Position;
 
 public class GameController {
-    private PApplet sketch;
+    private static final int SPEED = 30;
+    private static float SNAKE_SPEED;
+    private static final int TILE_SIZE = 40;
+    private static final int SNAKE_LENGTH = 4;
+    private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
+    private static final int FOOD_SIZE = TILE_SIZE;
+    private static final int TEXT_SIZE = 20;
+    private static final int NUM_AGENT_ACTIONS = 3; // 0: do nothing, 1: turn right, 2: turn left
 
+    private PApplet sketch;
     private GameBoard gameBoard;
     private Food food;
     private Snake snake;
     private Score scoreBoard;
 
+    public AgentStateHandler agentStateHandler;
     public EventHandler eventHandler;
-
-    private static final int SPEED = 10;
-    private static float SNAKE_SPEED;
-    private static final int TILE_SIZE = 10;
-
-    private static final int SNAKE_LENGTH = 4;
-    private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
-
-    private static final int FOOD_SIZE = TILE_SIZE;
-
-    private static final int TEXT_SIZE = 20;
+    public QLearner qLearner;
 
     // modes and states
     public GameState gameState = GameState.runningState;
@@ -41,6 +42,9 @@ public class GameController {
         this.sketch = sketch;
         SNAKE_SPEED = this.sketch.frameRate / SPEED;
         this.eventHandler = new EventHandler();
+        this.agentStateHandler = new AgentStateHandler();
+        this.qLearner = new QLearner(this.agentStateHandler.getNumStates(), NUM_AGENT_ACTIONS);
+        this.qLearner.initQTable();
     }
 
     public void resetGame() {
@@ -145,4 +149,31 @@ public class GameController {
         this.gameMode.handleInput(this, this.sketch.keyCode);
     }
 
+    // getters
+    public int getAgentStateId() {
+        Position snakeHeadPosition = this.snake.getPosition();
+        Position snakeTailPosition = this.snake.getTailPosition();
+        Position foodPosition = this.food.getPosition();
+        int snakeDirection = this.snake.getDirection();
+        int wallAtFront = this.snake.hasWallInThisDirection(snakeDirection);
+        int wallAtLeft = this.snake.hasWallInThisDirection((snakeDirection + 3) % 4);
+        int wallAtRight = this.snake.hasWallInThisDirection((snakeDirection + 1) % 4);
+        int stateId = this.agentStateHandler.getStateId(snakeHeadPosition, snakeTailPosition, snakeDirection,
+                SNAKE_BODY_PART_SIZE, foodPosition, wallAtFront, wallAtLeft, wallAtRight);
+        return stateId;
+    }
+
+    public int convertAgentActionToDirection(int agentAction) {
+        int direction = this.snake.getDirection();
+        if (agentAction == 1) {
+            direction = (direction + 1) % 4;
+        } else if (agentAction == 2) {
+            direction = (direction + 3) % 4;
+        }
+        return direction;
+    }
+
+    public int getCurrentScore() {
+        return this.scoreBoard.getScore();
+    }
 }
