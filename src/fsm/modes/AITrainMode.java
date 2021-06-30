@@ -6,15 +6,17 @@ import src.fsm.states.GameState;
 import src.learner.QLearner;
 
 public class AITrainMode implements GameMode {
-    int numEpisodes;
     int maxScore;
     static final double FOOD_REWARD = 15.0;
     static final double CRASH_REWARD = -10.0;
     static final double MOVEMENT_REWARD = -1.5;
 
     @Override
-    public void enter() {
-        this.numEpisodes = 1000;
+    public void enter(GameController game) {
+        // reset
+        if (QLearner.EPISODES == QLearner.MAX_EPISODES){
+            QLearner.EPISODES = 0;
+        }
     }
 
     @Override
@@ -27,7 +29,10 @@ public class AITrainMode implements GameMode {
             case 'R':
                 game.resetGame();
                 game.gameMode = GameMode.manualMode;
-                game.gameMode.enter();
+                game.gameMode.enter(game);
+                break;
+            case 'S':
+                game.qLearner.saveStateJSON();
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);
@@ -38,10 +43,11 @@ public class AITrainMode implements GameMode {
 
     @Override
     public void update(GameController game) {
-        if (game.gameState == GameState.endedState && this.numEpisodes-- > 0) {
+        if (game.gameState == GameState.endedState && QLearner.EPISODES < QLearner.MAX_EPISODES) {
+            QLearner.EPISODES++;
             System.out.println(
-                    this.numEpisodes + ", " + QLearner.EPSILON + ", " + this.maxScore + ", " + game.getCurrentScore());
-            if (this.numEpisodes % 100 == 0) {
+                    QLearner.EPISODES + ", " + QLearner.EPSILON + ", " + this.maxScore + ", " + game.getCurrentScore());
+            if (QLearner.EPISODES % 100 == 0) {
                 if (QLearner.EPSILON >= 0.001)
                     QLearner.EPSILON /= 1.1;
 

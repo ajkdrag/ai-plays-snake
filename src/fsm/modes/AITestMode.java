@@ -6,7 +6,7 @@ import src.fsm.states.GameState;
 
 public class AITestMode implements GameMode {
     @Override
-    public void enter() {
+    public void enter(GameController game) {
 
     }
 
@@ -20,7 +20,7 @@ public class AITestMode implements GameMode {
             case 'R':
                 game.resetGame();
                 game.gameMode = GameMode.manualMode;
-                game.gameMode.enter();
+                game.gameMode.enter(game);
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);

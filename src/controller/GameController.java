@@ -46,8 +46,9 @@ public class GameController {
         SNAKE_SPEED = (int) (this.sketch.frameRate / SPEED);
         this.eventHandler = new EventHandler();
         this.agentStateHandler = new AgentStateHandler();
-        this.qLearner = new QLearner(this.agentStateHandler.getNumStates(), NUM_AGENT_ACTIONS);
+        this.qLearner = new QLearner(this.sketch, this.agentStateHandler.getNumStates(), NUM_AGENT_ACTIONS);
         this.qLearner.initQTable();
+        this.qLearner.loadStateJSON();
     }
 
     public void resetGame() {

@@ -5,7 +5,7 @@ import src.evt.State;
 
 public class ManualMode implements GameMode {
     @Override
-    public void enter() {
+    public void enter(GameController game) {
 
     }
 
@@ -37,12 +37,12 @@ public class ManualMode implements GameMode {
                 break;
             case 'Q':
                 game.gameMode = GameMode.aiTestMode;
-                game.gameMode.enter();
+                game.gameMode.enter(game);
                 break;
             case 'T':
                 game.resetGame();
                 game.gameMode = GameMode.aiTrainMode;
-                game.gameMode.enter();
+                game.gameMode.enter(game);
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);

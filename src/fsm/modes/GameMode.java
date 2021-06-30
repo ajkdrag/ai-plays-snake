@@ -7,7 +7,7 @@ public interface GameMode {
     public static AITestMode aiTestMode = new AITestMode();
     public static AITrainMode aiTrainMode = new AITrainMode();
 
-    public void enter();
+    public void enter(GameController game);
 
     public void handleInput(GameController game, int keyCode);
 
