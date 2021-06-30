@@ -7,6 +7,10 @@ import src.learner.QLearner;
 
 public class AITrainMode implements GameMode {
     int numEpisodes;
+    int maxScore;
+    static final double FOOD_REWARD = 15.0;
+    static final double CRASH_REWARD = -10.0;
+    static final double MOVEMENT_REWARD = -1.5;
 
     @Override
     public void enter() {
@@ -35,42 +39,51 @@ public class AITrainMode implements GameMode {
     @Override
     public void update(GameController game) {
         if (game.gameState == GameState.endedState && this.numEpisodes-- > 0) {
-            QLearner.EPSILON -= 0.01;
+            System.out.println(
+                    this.numEpisodes + ", " + QLearner.EPSILON + ", " + this.maxScore + ", " + game.getCurrentScore());
+            if (this.numEpisodes % 100 == 0) {
+                if (QLearner.EPSILON >= 0.001)
+                    QLearner.EPSILON /= 1.1;
+
+            }
             game.resetGame();
         }
+
+        // Q-Learning invocation
         int currentAgentState = game.getAgentStateId();
         int currentAgentScore = game.getCurrentScore();
         int action = game.qLearner.getNextAction(currentAgentState);
-        switch (game.convertAgentActionToDirection(action)) {
+        switch (game.getDirectionFromAgentAction(action)) {
             case 0:
                 game.eventHandler.setEventState(State.KEY_PRESSED_UP);
-                game.eventHandler.handleEvent();
                 break;
             case 1:
                 game.eventHandler.setEventState(State.KEY_PRESSED_RIGHT);
-                game.eventHandler.handleEvent();
                 break;
             case 2:
                 game.eventHandler.setEventState(State.KEY_PRESSED_DOWN);
-                game.eventHandler.handleEvent();
                 break;
             case 3:
                 game.eventHandler.setEventState(State.KEY_PRESSED_LEFT);
-                game.eventHandler.handleEvent();
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);
                 break;
         }
+        game.eventHandler.handleEvent();
         game.gameState.update(game);
-        double reward = -10.0;
+        double reward = MOVEMENT_REWARD;
         int nextAgentState = game.getAgentStateId();
-        // TODO : game can end when there's no food to add as well. Fix this check
+        int newScore = game.getCurrentScore();
+
+        // todo: game can end when there's no food to add as well. Fix this check
         if (game.gameState == GameState.endedState) {
             nextAgentState = -1;
-            reward = -100.0;
-        } else if (game.getCurrentScore() > currentAgentScore)
-            reward = 500.0;
+            reward = CRASH_REWARD;
+            this.maxScore = newScore > this.maxScore ? newScore : this.maxScore;
+        } else if (newScore > currentAgentScore) {
+            reward = FOOD_REWARD;
+        }
         game.qLearner.updateQTable(currentAgentState, action, reward, nextAgentState);
     }
 

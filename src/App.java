@@ -6,6 +6,7 @@ import src.controller.GameController;
 class App extends PApplet {
     static int W = 640;
     static int H = 320;
+    static int fRate = 200;
     GameController gameController;
 
     public static void main(String[] args) {
@@ -19,7 +20,7 @@ class App extends PApplet {
     }
 
     public void setup() {
-        frameRate(60);
+        frameRate(fRate);
         this.gameController = new GameController(this);
         this.gameController.resetGame();
     }

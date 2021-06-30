@@ -3,28 +3,21 @@ package src.learner;
 import java.util.Random;
 
 public class QLearner {
-    QTable qTable;
-    Random random;
+    private QTable qTable;
+    private Random random;
 
-    private static final double GAMMA = 0.95;
-    private static final double LEARNING_RATE = 0.6;
-    public static double EPSILON = 0.5;
+    private static final double GAMMA = 0.85;
+    public static double LEARNING_RATE = 0.75;
+    public static double EPSILON = 0.9;
 
     public QLearner(int numStates, int numActions) {
+        System.out.println("Num states -> " + numStates + ", Num actions -> " + numActions);
         this.qTable = new QTable(numStates, numActions);
         this.random = new Random();
     }
 
     public void initQTable() {
         this.qTable.initEmptyQTable();
-    }
-
-    public int getNextAction(int currState) {
-        double exploreVsExploitDecision = random.nextDouble();
-        if (exploreVsExploitDecision <= EPSILON) {
-            return random.nextInt(3);
-        } else
-            return this.qTable.getArgMaxRewardForThisState(currState);
     }
 
     public void updateQTable(int currState, int action, double reward, int nextState) {
@@ -34,5 +27,15 @@ public class QLearner {
         }
         currentQTableReward += LEARNING_RATE * (reward - currentQTableReward);
         this.qTable.setQValue(currState, action, currentQTableReward);
+    }
+
+    // getters
+
+    public int getNextAction(int currState) {
+        double exploreVsExploitDecision = random.nextDouble();
+        if (exploreVsExploitDecision <= EPSILON) {
+            return random.nextInt(3);
+        } else
+            return this.qTable.getArgMaxRewardForThisState(currState);
     }
 }

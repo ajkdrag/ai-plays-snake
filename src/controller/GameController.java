@@ -15,8 +15,11 @@ import src.entities.Score;
 import src.utils.Position;
 
 public class GameController {
-    private static final int SPEED = 30;
-    private static float SNAKE_SPEED;
+    private static final int MAX_SPEED = 35;
+    private static final int MIN_SPEED = 10;
+    private static int SPEED = 2;
+    private static final int SPEED_TICK = 2;
+    private static int SNAKE_SPEED;
     private static final int TILE_SIZE = 40;
     private static final int SNAKE_LENGTH = 4;
     private static final int SNAKE_BODY_PART_SIZE = TILE_SIZE;
@@ -40,7 +43,7 @@ public class GameController {
 
     public GameController(PApplet sketch) {
         this.sketch = sketch;
-        SNAKE_SPEED = this.sketch.frameRate / SPEED;
+        SNAKE_SPEED = (int) (this.sketch.frameRate / SPEED);
         this.eventHandler = new EventHandler();
         this.agentStateHandler = new AgentStateHandler();
         this.qLearner = new QLearner(this.agentStateHandler.getNumStates(), NUM_AGENT_ACTIONS);
@@ -149,6 +152,21 @@ public class GameController {
         this.gameMode.handleInput(this, this.sketch.keyCode);
     }
 
+    // setters
+    public void setSpeedUp() {
+        if (SPEED >= MAX_SPEED)
+            return;
+        SPEED += SPEED_TICK;
+        SNAKE_SPEED = (int) (this.sketch.frameRate / SPEED);
+    }
+
+    public void setSpeedDown() {
+        if (SPEED <= MIN_SPEED)
+            return;
+        SPEED -= SPEED_TICK;
+        SNAKE_SPEED = (int) (this.sketch.frameRate / SPEED);
+    }
+
     // getters
     public int getAgentStateId() {
         Position snakeHeadPosition = this.snake.getPosition();
@@ -163,11 +181,13 @@ public class GameController {
         return stateId;
     }
 
-    public int convertAgentActionToDirection(int agentAction) {
+    public int getDirectionFromAgentAction(int agentAction) {
         int direction = this.snake.getDirection();
         if (agentAction == 1) {
+            // turn right
             direction = (direction + 1) % 4;
         } else if (agentAction == 2) {
+            // turn left
             direction = (direction + 3) % 4;
         }
         return direction;

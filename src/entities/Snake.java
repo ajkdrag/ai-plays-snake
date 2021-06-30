@@ -59,8 +59,8 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     public void eatFood() {
-        this.hasEatenFood = true;
-        this.length++;
+        //this.hasEatenFood = true;
+        //this.length++;
     }
 
     public boolean hasEatenItself() {

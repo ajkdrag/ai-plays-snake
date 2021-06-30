@@ -37,6 +37,7 @@ public class ManualMode implements GameMode {
                 break;
             case 'Q':
                 game.gameMode = GameMode.aiTestMode;
+                game.gameMode.enter();
                 break;
             case 'T':
                 game.resetGame();

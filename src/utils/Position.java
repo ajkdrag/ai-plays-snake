@@ -23,43 +23,31 @@ public class Position {
         return this;
     }
 
+    // getters
+
     public int getRelation(int directionFirst, Position second) {
+        // -1 : second point lies in the same direction/line
+        // 0 : second point lies to the left
+        // 1 : second point lies to the right
         int x2 = second.x;
         int y2 = second.y;
-        int ans = 0;
+        int ans = -1;
         switch (directionFirst) {
-            case 0:
-                ans = x2 < this.x ? 0 : 1;
-                break;
+            // down
             case 2:
-                ans = x2 <= this.x ? 1 : 0;
+                ans = x2 < this.x ? 1 : (x2 > this.x ? 0 : -1);
                 break;
-            case 1:
-                ans = y2 > this.y ? 0 : 1;
-                break;
-            case 3:
-                ans = y2 >= this.y ? 1 : 0;
-                break;
-            default:
-                break;
-        }
-        return ans;
-    }
-
-    public int willHitBoundary(int directionFirst, int boundDown, int boundUp, int boundLeft, int boundRight) {
-        int ans = 0;
-        switch (directionFirst) {
+            // up
             case 0:
-                ans = this.y <= boundUp ? 1 : 0;
+                ans = x2 < this.x ? 0 : (x2 > this.x ? 1 : -1);
                 break;
-            case 1:
-                ans = this.x >= boundRight ? 1 : 0;
-                break;
-            case 2:
-                ans = this.y >= boundDown ? 1 : 0;
-                break;
+            // left
             case 3:
-                ans = this.x <= boundLeft ? 1 : 0;
+                ans = y2 > this.y ? 0 : (y2 < this.y ? 1 : -1);
+                break;
+            // right
+            case 1:
+                ans = y2 > this.y ? 1 : (y2 < this.y ? 0 : -1);
                 break;
             default:
                 break;
