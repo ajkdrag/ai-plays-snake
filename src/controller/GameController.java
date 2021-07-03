@@ -15,8 +15,8 @@ import src.entities.Score;
 import src.utils.Position;
 
 public class GameController {
-    private static final int MAX_SPEED = 35;
-    private static final int MIN_SPEED = 10;
+    private static final int MAX_SPEED = 50;
+    private static final int MIN_SPEED = 2;
     private static int SPEED = 2;
     private static final int SPEED_TICK = 2;
     private static int SNAKE_SPEED;
@@ -39,16 +39,20 @@ public class GameController {
 
     // modes and states
     public GameState gameState = GameState.runningState;
-    public GameMode gameMode = GameMode.manualMode;
+    public GameMode gameMode = GameMode.aiTrainMode;
 
     public GameController(PApplet sketch) {
         this.sketch = sketch;
-        SNAKE_SPEED = (int) (this.sketch.frameRate / SPEED);
+        SNAKE_SPEED = (int) (60 / SPEED);
         this.eventHandler = new EventHandler();
         this.agentStateHandler = new AgentStateHandler();
         this.qLearner = new QLearner(this.sketch, this.agentStateHandler.getNumStates(), NUM_AGENT_ACTIONS);
         this.qLearner.initQTable();
-        this.qLearner.loadStateJSON();
+        try {
+            this.qLearner.loadStateJSON();
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
     }
 
     public void resetGame() {
@@ -174,11 +178,18 @@ public class GameController {
         Position snakeTailPosition = this.snake.getTailPosition();
         Position foodPosition = this.food.getPosition();
         int snakeDirection = this.snake.getDirection();
+        int prevDirection = this.snake.prevDirection;
         int wallAtFront = this.snake.hasWallInThisDirection(snakeDirection);
         int wallAtLeft = this.snake.hasWallInThisDirection((snakeDirection + 3) % 4);
         int wallAtRight = this.snake.hasWallInThisDirection((snakeDirection + 1) % 4);
+
+        int bodyPartAtFront = this.snake.hasBodyPartInThisDirection(snakeDirection);
+        int bodyPartAtLeft = this.snake.hasBodyPartInThisDirection((snakeDirection + 3) % 4);
+        int bodyPartAtRight = this.snake.hasBodyPartInThisDirection((snakeDirection + 1) % 4);
+
         int stateId = this.agentStateHandler.getStateId(snakeHeadPosition, snakeTailPosition, snakeDirection,
-                SNAKE_BODY_PART_SIZE, foodPosition, wallAtFront, wallAtLeft, wallAtRight);
+                prevDirection, SNAKE_BODY_PART_SIZE, foodPosition, wallAtFront, wallAtLeft, wallAtRight,
+                bodyPartAtFront, bodyPartAtLeft, bodyPartAtRight);
         return stateId;
     }
 

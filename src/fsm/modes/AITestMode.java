@@ -17,6 +17,9 @@ public class AITestMode implements GameMode {
                 game.eventHandler.setEventState(State.KEY_PRESSED_TAB);
                 game.eventHandler.handleEvent();
                 break;
+            case 'Q':
+                game.resetGame();
+                break;
             case 'R':
                 game.resetGame();
                 game.gameMode = GameMode.manualMode;
@@ -33,28 +36,26 @@ public class AITestMode implements GameMode {
     public void update(GameController game) {
         if (game.gameState == GameState.endedState)
             return;
-        int nextAction = game.qLearner.getNextAction(game.getAgentStateId());
-        switch (nextAction) {
+        int currentAgentState = game.getAgentStateId();
+        int action = game.qLearner.getNextAction(currentAgentState);
+        switch (game.getDirectionFromAgentAction(action)) {
             case 0:
                 game.eventHandler.setEventState(State.KEY_PRESSED_UP);
-                game.eventHandler.handleEvent();
                 break;
             case 1:
                 game.eventHandler.setEventState(State.KEY_PRESSED_RIGHT);
-                game.eventHandler.handleEvent();
                 break;
             case 2:
                 game.eventHandler.setEventState(State.KEY_PRESSED_DOWN);
-                game.eventHandler.handleEvent();
                 break;
             case 3:
                 game.eventHandler.setEventState(State.KEY_PRESSED_LEFT);
-                game.eventHandler.handleEvent();
                 break;
             default:
                 game.eventHandler.setEventState(State.KEY_INVALID);
                 break;
         }
+        game.eventHandler.handleEvent();
         game.gameState.update(game);
     }
 

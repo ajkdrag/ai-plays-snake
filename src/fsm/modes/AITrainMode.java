@@ -7,14 +7,14 @@ import src.learner.QLearner;
 
 public class AITrainMode implements GameMode {
     int maxScore;
-    static final double FOOD_REWARD = 15.0;
-    static final double CRASH_REWARD = -10.0;
-    static final double MOVEMENT_REWARD = -1.5;
+    static final double FOOD_REWARD = 500.0;
+    static final double CRASH_REWARD = -100.0;
+    static final double MOVEMENT_REWARD = -10.0;
 
     @Override
     public void enter(GameController game) {
         // reset
-        if (QLearner.EPISODES == QLearner.MAX_EPISODES){
+        if (QLearner.EPISODES == QLearner.MAX_EPISODES) {
             QLearner.EPISODES = 0;
         }
     }
@@ -48,9 +48,11 @@ public class AITrainMode implements GameMode {
             System.out.println(
                     QLearner.EPISODES + ", " + QLearner.EPSILON + ", " + this.maxScore + ", " + game.getCurrentScore());
             if (QLearner.EPISODES % 100 == 0) {
-                if (QLearner.EPSILON >= 0.001)
+                game.qLearner.saveStateJSON();
+                if (QLearner.EPSILON >= 0.1)
                     QLearner.EPSILON /= 1.1;
-
+                if (QLearner.LEARNING_RATE >= 0.1)
+                    QLearner.LEARNING_RATE /= 1.1;
             }
             game.resetGame();
         }

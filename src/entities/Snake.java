@@ -32,6 +32,7 @@ public class Snake extends DrawableGameComponent implements EventListener {
     private int length;
     private int assumedDirection = 1;
     private int traversedDirection = 1;
+    public int prevDirection = 1;
     private int[] dirX = { 0, 1, 0, -1 };
     private int[] dirY = { -1, 0, 1, 0 };
     private int bodyPartSize;
@@ -59,8 +60,8 @@ public class Snake extends DrawableGameComponent implements EventListener {
     }
 
     public void eatFood() {
-        //this.hasEatenFood = true;
-        //this.length++;
+        this.hasEatenFood = true;
+        this.length++;
     }
 
     public boolean hasEatenItself() {
@@ -104,6 +105,18 @@ public class Snake extends DrawableGameComponent implements EventListener {
         return ans;
     }
 
+    public int hasBodyPartInThisDirection(int direction) {
+        int ans = 0;
+        Position nextPos = getNextPosition(direction);
+        for (BodyPart part : this.body) {
+            if (part.getPosition().equals(nextPos)) {
+                ans = 1;
+                break;
+            }
+        }
+        return ans;
+    }
+
     public boolean isDirectionValid() {
         return this.assumedDirection >= 0 && this.assumedDirection < 4;
     }
@@ -112,6 +125,7 @@ public class Snake extends DrawableGameComponent implements EventListener {
     public void update() {
         // sliding window concept for snake movement
         if (isDirectionValid()) {
+            prevDirection = this.traversedDirection;
             this.traversedDirection = assumedDirection;
             Position tailPosition = this.body.peekFirst().getPosition();
             BodyPart newHead = new BodyPart(this.sketch, this.bodyPartSize);
@@ -203,6 +217,28 @@ public class Snake extends DrawableGameComponent implements EventListener {
     public Position getNextPosition() {
         return new Position(this.position.x + dirX[this.assumedDirection] * this.bodyPartSize,
                 this.position.y + dirY[this.assumedDirection] * this.bodyPartSize);
+    }
+
+    public Position getNextPosition(int direction) {
+        int newX = this.position.x;
+        int newY = this.position.y;
+        switch (direction) {
+            case 0:
+                newY -= this.bodyPartSize;
+                break;
+            case 1:
+                newX += this.bodyPartSize;
+                break;
+            case 2:
+                newY += this.bodyPartSize;
+                break;
+            case 3:
+                newX -= this.bodyPartSize;
+                break;
+            default:
+                break;
+        }
+        return new Position(newX, newY);
     }
 
     public Position getTailPosition() {

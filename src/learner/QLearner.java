@@ -13,9 +13,9 @@ public class QLearner {
     private Random random;
     private PApplet sketch;
 
-    private static final double GAMMA = 0.85;
-    public static double LEARNING_RATE = 0.75;
-    public static final int MAX_EPISODES = 5000;
+    private static final double GAMMA = 0.95;
+    public static double LEARNING_RATE = 0.90;
+    public static final int MAX_EPISODES = 1000000;
     public static double EPSILON;
     public static int EPISODES;
 
