@@ -1,5 +1,5 @@
 # AI-Plays-Snake
-<img src="extras/snake.gif" alt="AI playing snake demo">
+<img src="extras/snake.gif" width=382px height=188px alt="AI playing snake demo">
 
 Classic Snake game in Java | Processing, with Q-Learning.
 
@@ -11,6 +11,7 @@ git clone https://github.com/ajkdrag/AI-Plays-Snake.git
 
 Go to the root dir and run the gradle wrapper script
 ```bash
+cd AI-Plays-Snake
 ./gradlew run
 ```
 
